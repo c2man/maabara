@@ -135,7 +135,7 @@ class Sheet(object):
         Arguments:
         equation -- see this.set_equation
         data -- see this.set_data
-        Returns tuple ( sympy equation, sympy error_equation, float value, float, error_value)
+        Returns sympy equation, sympy error_equation, ufloat result
         """
         
         self.set_equation(equation)
@@ -211,7 +211,7 @@ class Sheet(object):
         # cast to uncertainties
         self.ufloat = uc.ufloat(self.nominal,self.deviation)
         
-        return
+        return self.eq_expr, self.err_expr, self.ufloat
 
     def print_result(self,mode = "default", multiply = "dot"):
         """Print symbolic error propagation

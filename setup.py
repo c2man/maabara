@@ -5,8 +5,8 @@ def readme():
         return f.read()
 
 setup(name='maabara',
-      version='0.2',
-      description='Tools for evaluation of scientific experiments',
+      version='0.3',
+      description='Symbolic propagation of uncertainties latex interfaced',
       classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
@@ -14,14 +14,14 @@ setup(name='maabara',
         'Topic :: Scientific/Engineering',
       ],
       long_description=readme(),
-      keywords='uncertainties symbolic latex',
-      url='http://www.nocio.de',
+      keywords='propagation uncertainties symbolic latex',
+      url='https://github.com/dudheit314/maabara',
       author='Frithjof Gressmann',
       author_email='hello@nocio.de',
       license='MIT',
       packages=['maabara'],
       install_requires=[
-          'numpy','sympy','uncertainties'
+          'numpy','sympy','uncertainties','scipy'
       ],
       include_package_data=True,
       zip_safe=False)

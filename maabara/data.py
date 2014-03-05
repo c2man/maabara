@@ -2,6 +2,7 @@ from __init__ import *
 
 import numpy as np
 import uncertainties as uc
+from scipy.optimize import curve_fit
 
 def literature_value(lit, value, dev = 0, mode="default"):
     """Comparision with literature value
@@ -80,7 +81,7 @@ def statistic_values(x):
             x -- numpy array with statistical values
 
         Returns:
-        	if x is linear array:
+            if x is linear array:
             	(float) mean, (float) deviation, (float) deviation for a single value in set
             if x is 2-dimensional:
             	numpy array with two columns for mean and deviation and row count like in given set
@@ -111,7 +112,7 @@ def student_t(x):
             x -- numpy array with statistical values
 
         Returns:
-        	if x is linear array:
+            if x is linear array:
             	(float) mean, (float) deviation
             if x is 2-dimensional:
             	numpy array with two columns for mean and deviation and row count like in given set
@@ -135,16 +136,111 @@ def student_t(x):
 	else:
 		return False
 
+
+def linear_fit(xdata, ydata, ysigma=None, name="r"):
+    """
+    Performs a linear fit to data.
+
+    Arguments
+        xdata -- array like
+        ydata -- array like
+        ysigma -- None or array like
+            If provided, it is the standard-deviation of ydata.
+            This vector, if given, will be used as weights in the fit.
+        name -- (optional) Latex name
+
+    Returns
+        m  -- ufloat 
+        b --  ufloat
+        tex -- Latex code of linear polynom
+    """
+    
+    xdata = np.array(xdata)
+    ydata = np.array(ydata)
+    ysigma = np.array(ysigma)
+    
+    if ysigma is None:
+        w = ones(len(ydata)) # Each point is equally weighted.
+    else:
+        w=1.0/(ysigma**2)
+
+    sw = sum(w)
+    wx = w*xdata # this product gets used to calculate swxy and swx2
+    swx = sum(wx)
+    swy = sum(w*ydata)
+    swxy = sum(wx*ydata)
+    swx2 = sum(wx*xdata)
+
+    a = (sw*swxy - swx*swy)/(sw*swx2 - swx*swx)
+    b = (swy*swx2 - swx*swxy)/(sw*swx2 - swx*swx)
+    sa = np.sqrt(sw/(sw*swx2 - swx*swx))
+    sb = np.sqrt(swx2/(sw*swx2 - swx*swx))
+
+    if ysigma is None:
+        chi2 = sum(((a*xdata + b)-ydata)**2)
+    else:
+        chi2 = sum((((a*xdata + b)-ydata)/ysigma)**2)
+    dof = len(ydata) - 2
+    rchi2 = chi2/dof
+    print 'results of linear_fit:'
+    print '   chi squared = ', chi2
+    print '   degrees of freedom = ', dof
+    print '   reduced chi squared = ', rchi2
+
+    m = uc.ufloat(a,sa)
+    b = uc.ufloat(b,sb)
+    
+    tex = name + "(x) = " + "{:LS}".format(m) + " \cdot x + " + "{:LS}".format(b)
+
+    return m, b, tex
+
+
+
+def general_fit(f, xdata, ydata, p0=None, sigma=None, **kw):
+    """
+    Pass all arguments to curve_fit, which uses non-linear least squares
+    to fit a function, f, to data.  Calculate the uncertaities in the
+    fit parameters from the covariance matrix.
+    """
+    xdata = np.array(xdata)
+    ydata = np.array(ydata)
+    sigma = np.array(sigma)
+    
+    popt, pcov = curve_fit(f, xdata, ydata, p0, sigma, **kw)
+
+    if sigma is None:
+        chi2 = sum(((f(xdata,*popt)-ydata))**2)
+    else:
+        chi2 = sum(((f(xdata,*popt)-ydata)/sigma)**2)
+    dof = len(ydata) - len(popt)
+    rchi2 = chi2/dof
+    print 'results of general_fit:'
+    print '   chi squared = ', chi2
+    print '   degrees of freedom = ', dof
+    print '   reduced chi squared = ', rchi2
+
+    # The uncertainties are the square roots of the diagonal elements
+    punc = np.zeros(len(popt))
+    for i in np.arange(0,len(popt)):
+        punc[i] = np.sqrt(pcov[i,i])
+    return popt, punc, rchi2, dof
+
 def linear_regression(x, y, yerr, name = "r"):
+    """
+    ! decrepated !
+    use linear fit instead
+    """
     x = np.array(x)
     y = np.array(y)
     yerr = np.array(yerr)
-    fit, covmat = np.polyfit(x, y, 1, w=1/yerr, cov=True)
+    fit, covmat = np.polyfit(x, y, 1, w=1./yerr, cov=True)
     variances = covmat.diagonal()
     std_devs = np.sqrt(variances)
     
     m = uc.ufloat(fit[0],std_devs[0])
     b = uc.ufloat(fit[1],std_devs[1])
+    
+    return m, b, "daf"
     
     tex = name + "(x) = " + "{:LS}".format(m) + " \cdot x + " + "{:LS}".format(b)
         
@@ -167,4 +263,3 @@ class Ix(object):
                 self.e = len(e[:,n])
 
         self.b = b
-
