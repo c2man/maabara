@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='maabara',
-      version='0.3',
+      version='0.4',
       description='Symbolic propagation of uncertainties latex interfaced',
       classifiers=[
         'Development Status :: 4 - Beta',
