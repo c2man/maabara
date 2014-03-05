@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='maabara',
-      version='0.4',
+      version='0.5',
       description='Symbolic propagation of uncertainties latex interfaced',
       classifiers=[
         'Development Status :: 4 - Beta',
@@ -13,7 +13,7 @@ setup(name='maabara',
         'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering',
       ],
-      #long_description=readme(),
+      long_description=readme(),
       keywords='propagation uncertainties symbolic latex',
       url='https://github.com/dudheit314/maabara',
       author='Frithjof Gressmann',
