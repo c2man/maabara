@@ -15,6 +15,7 @@ Python package for symbolic propagation of uncertainties with latex interface
 The package uses [uncertainties](http://pythonhosted.org/uncertainties/), [sympy](http://sympy.org/en/index.html) and [numpy](http://www.numpy.org/) package
 
 ####References
+* [Github Project](https://github.com/dudheit314/maabara)
 * [Pypi Website](https://pypi.python.org/pypi/maabara)
 * [Blog](http://www.nocio.de)
 
