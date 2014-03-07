@@ -28,7 +28,7 @@ class Table(object):
         self.embedding = True
         self.placement = '[!htb]'
     
-    def placement(self, placement = '[!htb]'):
+    def set_placement(self, placement = '[!htb]'):
     	self.placement = placement
     
     def no_environment(self):
@@ -102,6 +102,7 @@ class Table(object):
             num($0) -- format data from first column in data as number 
             num($0,0.1) -- format number with constant uncertainty 0.1
             num($0,$1) -- dynamic uncertainty from second column of data
+            num($0,$1,{:L}) -- optional format for ufloat printing
             $0,$1 -- num will be default if not function given
             
             lit(3.141, $0) -- compare with literature value of pi
@@ -228,12 +229,12 @@ class Table(object):
             circ = ''
 
         # head
-        head = '\\begin{table} \n'
+        head = '\\begin{table}' + self.placement + '\n'
         
         if self.center:
             head += '\\centering\n'
     
-        head += '\\begin{tabular}' + self.placement
+        head += '\\begin{tabular}'
     
         pos = ''
         sep = ''

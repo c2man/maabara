@@ -9,12 +9,12 @@ def hr():
     except:
         pass
     
-def print_ufloat(ufloat, name = ""):
+def print_ufloat(ufloat, name = '',layout = '{:.1uL}'):
     prefix = ""
     if name != "":
         prefix = name + " = "
 
-    tex = prefix + '{:L}'.format(ufloat)
+    tex = prefix + layout.format(ufloat)
     
     try:
         import IPython.display

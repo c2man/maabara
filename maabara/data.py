@@ -198,9 +198,50 @@ def linear_fit(xdata, ydata, ysigma=None, name="r"):
 
 def general_fit(f, xdata, ydata, p0=None, sigma=None, **kw):
     """
-    Pass all arguments to curve_fit, which uses non-linear least squares
-    to fit a function, f, to data.  Calculate the uncertaities in the
-    fit parameters from the covariance matrix.
+    Use non-linear least squares to fit a function, f, to data.
+
+    Assumes ``ydata = f(xdata, *params) + eps``
+
+    Parameters
+    ----------
+    f : callable
+        The model function, f(x, ...).  It must take the independent
+        variable as the first argument and the parameters to fit as
+        separate remaining arguments.
+    xdata : An N-length sequence or an (k,N)-shaped array
+        for functions with k predictors.
+        The independent variable where the data is measured.
+    ydata : N-length sequence
+        The dependent data --- nominally f(xdata, ...)
+    p0 : None, scalar, or M-length sequence
+        Initial guess for the parameters.  If None, then the initial
+        values will all be 1 (if the number of parameters for the function
+        can be determined using introspection, otherwise a ValueError
+        is raised).
+    sigma : None or N-length sequence
+        If not None, it represents the standard-deviation of ydata.
+        This vector, if given, will be used as weights in the
+        least-squares problem.
+
+    Returns
+    -------
+    array of two columns: parameter and deviation
+
+    Notes
+    -----
+    The algorithm uses the Levenburg-Marquardt algorithm through `leastsq`.
+    Additional keyword arguments are passed directly to that algorithm.
+
+    Examples
+    --------
+    >>> def func(x, a, b, c):
+    ...     return a*np.exp(-b*x) + c
+
+    >>> x = np.linspace(0,4,50)
+    >>> y = func(x, 2.5, 1.3, 0.5)
+    >>> yn = y + 0.2*np.random.normal(size=len(x))
+
+    >>> r = general_fit(func, x, yn)
     """
     xdata = np.array(xdata)
     ydata = np.array(ydata)
@@ -223,28 +264,10 @@ def general_fit(f, xdata, ydata, p0=None, sigma=None, **kw):
     punc = np.zeros(len(popt))
     for i in np.arange(0,len(popt)):
         punc[i] = np.sqrt(pcov[i,i])
-    return popt, punc, rchi2, dof
 
-def linear_regression(x, y, yerr, name = "r"):
-    """
-    ! decrepated !
-    use linear fit instead
-    """
-    x = np.array(x)
-    y = np.array(y)
-    yerr = np.array(yerr)
-    fit, covmat = np.polyfit(x, y, 1, w=1./yerr, cov=True)
-    variances = covmat.diagonal()
-    std_devs = np.sqrt(variances)
-    
-    m = uc.ufloat(fit[0],std_devs[0])
-    b = uc.ufloat(fit[1],std_devs[1])
-    
-    return m, b, "daf"
-    
-    tex = name + "(x) = " + "{:LS}".format(m) + " \cdot x + " + "{:LS}".format(b)
-        
-    return m, b, tex
+    result = np.column_stack((popt, punc))
+
+    return result
 
 class Ix(object):
     def __init__(self, n = False, s = False, e = False, b = False):
