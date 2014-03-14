@@ -110,6 +110,8 @@ class Table(object):
             
             rnd($0,3) -- round numbers in 3 digits
             
+            uc($0) -- num function but with ufloat argument
+            
         title -- column caption
         """
         def dynamic_value(arg, row):
@@ -145,6 +147,9 @@ class Table(object):
         
         def rnd(value, digits):
             return num(round(value, digits))
+        
+        def uc(value):
+            return num(value.n, value.s)
 
         # transpose to column
         try:
