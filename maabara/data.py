@@ -190,7 +190,10 @@ def linear_fit(xdata, ydata, ysigma=None, name="r"):
     m = uc.ufloat(a,sa)
     b = uc.ufloat(b,sb)
     
-    tex = name + "(x) = " + "{:LS}".format(m) + " \cdot x + " + "{:LS}".format(b)
+    opr = '+'
+    if (b < 0):
+        opr = '-'
+    tex = name + "(x) = " + "{:.1uLS}".format(m) + " \cdot x " + opr + " {:.1uLS}".format(b)
 
     return m, b, tex
 

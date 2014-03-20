@@ -224,7 +224,7 @@ class Sheet(object):
         self.run()
         
         # outs
-        result_tex = '{:L}'.format(self.ufloat)
+        result_tex = '{:.1uL}'.format(self.ufloat)
         if (self.name != ""):
             result_tex = self.name + "=" + result_tex
 
