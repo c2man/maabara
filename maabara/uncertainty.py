@@ -361,19 +361,64 @@ class Sheet(object):
     	return self.set_value(symbol, False, error)
     
     def batch(self,data, fields, mode = "default"):
-        """Multiple numeric error propagation
-
-        Arguments:
-        data -- numpy array or tuple of columns
-        fields --   (string) list of columns divided by |
-                    deviations columns must be suffix by '%'
-                    write * to ignore column
-                    
-                    Example:
-                    E|E%|*|t
-                    
-        mode -- (string) exact, ufloat, default
         """
+        
+        Batch process a set of values.
+
+        Parameters
+        ----------
+        data : array_like NxM or tuple of array_like
+            A tuple will be stacked to columns. Columns represent 
+            different variables indexed by ``fields``. Rows will be iterated.
+        fields : string
+            List of columns fields divided by ``|``. Deviations columns 
+            must be suffix by ``%``. Use ``*`` to ignore a column form ``data``     
+        mode : {'default', 'ufloat', or 'exact'}, optional
+            Specify ``return`` type
+            
+        Returns
+        -------
+        out : ndarray
+            Depending on mode.
+            
+            'default' will return Nx2 array. First column will hold 
+            nominal value, second its deviation.
+            'exact' like default but rounded to significant digits.
+            'ufloat' will return Nx1 array of ufloats 
+        
+        
+        Notes
+        -----
+        It is possible to set constant values or errors before calling
+        batch method. The batch method will automaticly use the values 
+        if not given by the data array. See example below.
+        
+        Examples
+        --------
+        Retrieve a computation object and set equation
+        
+        >>> stack = ma.uncertainty.Sheet('a*x**3')
+        
+        Data array specifies the sets to compute row-by-row
+        
+        >>> data = np.array([ [0.5, 1. , 0.1],  [0.3, 2. ,0.15]] )    
+        
+        Batch the data
+        
+        >>> stack.set_value('a', 0.05)      # set constant error for a
+        >>> stack.batch(data, 'a|x|x%')
+        array([[ 0.5 ,  0.15],           
+               [ 2.4 ,  0.54]])             # line-by-line result with uncertainty
+               
+        Try again with constant value
+        
+        >>> stack.set_value('a',1., 0.05)          # define constant a value
+        >>> stack.batch(data, '*|x|x%', 'ufloat')  # rerun computation ignoring first data column
+        array([[1.0+/-0.30000000000000004],
+               [8.0+/-1.7999999999999998]], dtype=object)
+        """
+        
+        data = np.array(data);
 
         if(isinstance(data,tuple)):
             data = np.column_stack(data)

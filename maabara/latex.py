@@ -304,5 +304,3 @@ class Table(object):
             return True
         
         return result
-    
-    

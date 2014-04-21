@@ -22,19 +22,3 @@ def print_ufloat(ufloat, name = '',layout = '{:.1uL}'):
     except:
         logging.warn('Could not import IPython.display to render Latex')
     print tex + '\n'
-    
-    
-#@remove
-def ufloat2tex_(ufloat, name = "", mode = "default"):
-	prefix = ""
-	if name != "":
-		prefix = name + " = "
-		
-	if (mode == "short"):
-		mode = "{:LS}"
-	else:
-		mode = "{:L}"
-	return prefix + mode.format(ufloat)
-
-def u2tex_(ufloat, name = "", mode = "short"):
-	return ufloat2tex(ufloat, name, mode)
