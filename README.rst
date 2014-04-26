@@ -1,34 +1,40 @@
-Maabara
-=======
+Python package for symbolic propagation of uncertainties with Latex
+binding.
 
-Python package for symbolic propagation of uncertainties with latex
-interface
+-  `Introduction & Documentation`_
+-  `Github Project`_
+-  `Blog`_
 
--  `Quickstart tutorial`_
+Maabara extends `uncertainties`_ package and allows you to calculate and
+document error propagation in one step. Type your equation once, get the
+result and its uncertainty including calculation specification - ready
+in Latex markup. It’s easy to create Latex tables from the results.
+Moreover the data module provides functions for estimation of
+uncertainty, fitting with error bars, comparison with literature values
+and more.
 
 Features
 ^^^^^^^^
 
--  Symbolic error propagation in LATEX markup language
--  Easy creation of LATEX tables
--  Weighted average, deviation from statistical data, easy fitting etc.
+-  Symbolic error propagation in Latex markup
+-  Easy creation of Latex tables
+-  Weighted average, deviation from statistical data, fitting with
+   deviation etc.
 
 Dependencies
 ^^^^^^^^^^^^
 
-The package uses `uncertainties`_, `sympy`_ and `numpy`_ package
+The package uses `uncertainties`_, `sympy`_ and `numpy`_.
 
-References
-^^^^^^^^^^
+Notes
+^^^^^
 
--  `Github Project`_
--  `Blog`_
+Maabara follows `Sematic Versioning`_.
 
-Please be aware it is a beta version, feedback is really welcome
-
-.. _Quickstart tutorial: http://nbviewer.ipython.org/gist/dudheit314/9333733/maabara-tutorial.ipynb
+.. _Introduction & Documentation: http://maabara.nocio.de/
+.. _Github Project: https://github.com/dudheit314/maabara
+.. _Blog: http://www.nocio.de
 .. _uncertainties: http://pythonhosted.org/uncertainties/
 .. _sympy: http://sympy.org/en/index.html
 .. _numpy: http://www.numpy.org/
-.. _Github Project: https://github.com/dudheit314/maabara
-.. _Blog: http://www.nocio.de
+.. _Sematic Versioning: http://www.semver.org

@@ -5,12 +5,19 @@ import numpy as np
 import uncertainties as uc
 
 class Sheet(object):
-    """Symbolic propagation of uncertainty
+    """
+    
+    Symbolic propagation of uncertainty
 
-    Arguments:
-    equation -- see this.set_equation
-    data -- see this.set_data
-    name -- (string) type name
+    Parameters
+    ----------
+    equation : sympy equation string, optional
+        See :func:`~maabara.uncertainty.Sheet.set_equation`
+    name : string, optional
+        See :func:`~maabara.uncertainty.Sheet.set_name`
+    data : list
+        See :func:`~maabara.uncertainty.Sheet.set_data`
+    
     """
 
     def __init__(self, equation = "0", name = "", data = []):
@@ -20,7 +27,14 @@ class Sheet(object):
         self.set_data(data)
 	
     def reset(self):
-        """Clear all settings
+        """
+        
+        Clear all settings
+        
+        Returns
+        -------
+        out : boolean
+            True on success.
         """
         self.name = ""
 	
@@ -39,28 +53,52 @@ class Sheet(object):
         return True
     
     def set_name(self,name):
-        """Set a name for this result
-            You can use any Latex markup
-        Arguments:
-        name -- (string) Latex name
+        """
+        
+        Set a name
+        
+        Parameters
+        ----------
+        name : string
+            Name as Latex markup. It will appear in computation equations.
+            
+        Returns
+        -------
+        out : boolean
+            True on success.
         """
         self.name = name
         return True
     
     def n(self, name):
-        """Set a name for this result
-            You can use any Latex markup
-        Arguments:
-            name -- (string) Latex name
+        """
+        
+        Alias of :func:`~maabara.uncertainty.Sheet.set_name`
+        
         """
     	return self.set_name(name)
     
     def set_equation(self,equation, name = ""):
-        """Set sympy equation string
-            Only use symbols you have defined by set_value!
-        Arguments:
-        equation -- Sympy equation string; note: 1/2 -> Rational(1,2)
-        name -- (optional) see set_name function
+        """
+        
+        Set equation string
+            
+        Parameters
+        ----------
+        equation : Sympy equation string
+            Use fundamental functions like ``sin, exp, sqrt, atan`` etc. 
+            and ``Rational(a,b)`` to define a fraction a/b.
+            Allowed variable names are alphanumeric and use ``_`` only.
+            They must be specifed by :func:`~maabara.uncertainty.Sheet.set_value`.
+            Please be aware that ``I`` will be interpreted as imaginary unit.
+        name : string, optional
+            See :func:`~maabara.uncertainty.Sheet.set_name`
+            
+        Returns
+        -------
+        out : boolean
+            True on success.
+        
         """
         if (isinstance(equation, str) & (equation != "")):
             self.changed_equation = True
@@ -72,30 +110,57 @@ class Sheet(object):
             return True
             
     def eq(self,equation,name = ""):
-        """Set sympy equation string
-            Only use symbols you have defined by set_value!
-        Arguments:
-        equation -- Sympy equation string; note: 1/2 -> Rational(1,2)
-        name -- (optional) see set_name function
+        """
+        
+        Alias of :func:`~maabara.uncertainty.Sheet.set_equation`
+        
         """
     	return self.set_equation(equation, name)
             
     def set_data(self, data):
-        """Set data
+        """
+        
+        Set data manually.
 
-        Arguments:
-        data -- list of tuples: ( string Variable , float Value, float Error = 0, tex = "")
+        Parameters
+        ----------
+        data : list of tuples
+            [ ( string Variable, float Value, float Error = 0, tex = "") ]
+            
+        Notes
+        -----
+        It is more recommend to use :func:`~maabara.uncertainty.Sheet.set_value` 
+        function to manipulate the data.
+        
+        Returns
+        -------
+        out : boolean
+            True on success.
         """
         if (len(data) > 0):
         	self.data = data
         	return True
             
     def get_data(self, line = False, element = False):
-    	"""Returns data
+    	"""
+        
+        Get data
     	
-    	Arguments
-    	line --- (mixed, optional) 
-    	element --- (string) val, dev, tex
+    	Parameters
+        ----------
+    	line : string, optional 
+            Variable name
+    	element : {'val', 'dev', or 'tex'}, optional
+            Return mode
+            
+        Returns
+        -------
+        out : mixed
+            If ``line`` and ``element`` are False complete data is returned.
+            If found ``line`` will be returned as tuple.
+            If ``element`` is specified value (val), deviation (dev) or
+            Latex markup (tex) will be returned.
+            
     	"""
     	if (line != False):
     		index = self._find_in_list(self.data, line)
@@ -116,26 +181,72 @@ class Sheet(object):
     	else:
     		return self.data
 
-    def _msg(self, message, mode = 'default'):
-        # avoid multiple messages
-    	try:
-            self.messages.index(message)
-            return
-    	except:
-            self.messages.append(message)
-    	
-    	if (mode == 'warning'):
-            logging.warning(message)
-        else:
-            logging.info(message)
-            
-    def run(self, equation = False, data = []):
-        """Symbolic error propagation from data
+    def set_value(self, symbol, value = False, error = False, tex = False):
+        """
+        
+        Set uncertain value
 
-        Arguments:
-        equation -- see this.set_equation
-        data -- see this.set_data
-        Returns sympy equation, sympy error_equation, ufloat result
+        Parameters
+        ----------
+        symbol : string 
+            Symbol string used in equation
+        value : float, optional
+            Value
+        error : float, optional
+            Deviation
+        tex : string, optional
+            Latex markup replace string. All symbol occurences will be 
+            replaced by this markup.
+        """
+
+	symbol_replaced = symbol.replace('_','')
+        
+	symbol_clear = ''.join(e for e in symbol_replaced if e.isalnum())
+	
+	if (symbol_replaced != symbol_clear):
+		raise ValueError("Invalid symbol name, only underscore alphanumeric expression allowed (eg. Example_1). You might use 'tex'-parameter to set more complex expression names")
+
+	if (symbol_replaced != symbol) & (tex == False):
+		tex = sy.latex(sy.sympify(symbol))
+
+        val = (symbol_replaced, value, error, tex)
+        
+        index = self._find_in_list(self.data, symbol)
+        if (index == -1):
+            self.data.append(val)
+        else:
+            if(index[1] == 0):
+                self.data[index[0]] = val
+            else:
+                self.data.append(val)
+                
+    def v(self,symbol, value = False, error = False, tex = False):
+        """
+        
+        Alias of :func:`~maabara.uncertainty.Sheet.set_value`
+        
+        """
+    	return self.set_value(symbol, value, error, tex)
+    
+    def set_error(self, symbol, error):
+    	return self.set_value(symbol, False, error)            
+
+    def run(self, equation = False, data = []):
+        """
+        
+        Runs symbolic error propagation by specified data
+
+        Parameters
+        ----------
+        equation :  string, optional
+            See :func:`~maabara.uncertainty.Sheet.set_equation` 
+        data : list, optional
+            See :func:`~maabara.uncertainty.Sheet.set_data` 
+        
+        Returns
+        -------   
+        out : sympy equation, sympy error_equation, ufloat result
+        
         """
         
         self.set_equation(equation)
@@ -214,11 +325,22 @@ class Sheet(object):
         return self.eq_expr, self.err_expr, self.ufloat
 
     def print_result(self,mode = "default", multiply = "dot"):
-        """Print symbolic error propagation
+        """
+        
+        Print results of symbolic error propagation
 
-        Arguments:
-        mode -- (string) default, short
-        multiply -- (optional) tex code for multiply, use None for no multipliers
+        Parameters
+        ----------
+        mode : {'default', or 'short'}
+            Specifies printing mode.
+        multiply : string, optional
+            Latex markup for multiply symbol. Use ``None`` to 
+            supress multipliers
+            
+        Returns
+        -------
+        out : ufloat
+            Result
         """
         
         self.run()
@@ -269,28 +391,34 @@ class Sheet(object):
         return self.ufloat
 
     def p(self,mode = "default", multiply = "dot"):
-        """Print symbolic error propagation alias
-
-        Arguments:
-        mode -- (string) default, short
-        multiply -- (optional) tex code for multiply, use None for no multipliers
+        """
+        
+        Alias of :func:`~maabara.uncertainty.Sheet.print_result`
+        
         """
     	return self.print_result(mode, multiply)
 
     def ps(self):
-        """Print symbolic error propagation in short mode
-        (alias for print_result)
+        """
+        
+        Alias of :func:`~maabara.uncertainty.Sheet.set_result` in short mode
+        
         """
     	return self.print_result("short")
 
     def get_result(self,mode = "default"):
-        """Get error propagation
+        """
+        
+        Get error propagation
 
-        Arguments:
-        mode -- (string) tex, ufloat, exact, default
+        Parameters
+        ----------
+        mode : {'default', 'exact', 'ufloat', or 'tex'}
 
-        Returns:
-            mixed
+        Returns
+        -------
+            out : mixed
+            
         """
         self.run()
         
@@ -313,53 +441,8 @@ class Sheet(object):
         elif (mode == "default"):
             return (self.nominal, self.deviation)
 
-        return
+        return False;
 
-    def set_value(self,symbol, value = False, error = False, tex = False):
-        """Set uncertain value
-
-        Arguments:
-        symbol -- (string) symbol string used in equation
-        value -- (float) value
-        error -- (float) deviation
-        tex -- (string) latex replace string (optional)
-        """
-
-	symbol_replaced = symbol.replace('_','')
-        
-	symbol_clear = ''.join(e for e in symbol_replaced if e.isalnum())
-	
-	if (symbol_replaced != symbol_clear):
-		raise ValueError("Invalid symbol name, only underscore alphanumeric expression allowed (eg. Example_1). You might use 'tex'-parameter to set more complex expression names")
-
-	if (symbol_replaced != symbol) & (tex == False):
-		tex = sy.latex(sy.sympify(symbol))
-
-        val = (symbol_replaced, value, error, tex)
-        
-        index = self._find_in_list(self.data, symbol)
-        if (index == -1):
-            self.data.append(val)
-        else:
-            if(index[1] == 0):
-                self.data[index[0]] = val
-            else:
-                self.data.append(val)
-                
-    def v(self,symbol, value = False, error = False, tex = False):
-        """Set uncertain value
-
-        Arguments:
-        symbol -- (string) symbol string used in equation
-        value -- (float) value
-        error -- (float) deviation
-        tex -- (string) latex replace string (optional)
-        """
-    	return self.set_value(symbol, value, error, tex)
-    
-    def set_error(self, symbol, error):
-    	return self.set_value(symbol, False, error)
-    
     def batch(self,data, fields, mode = "default"):
         """
         
@@ -401,16 +484,16 @@ class Sheet(object):
         
         Data array specifies the sets to compute row-by-row
         
-        >>> data = np.array([ [0.5, 1. , 0.1],  [0.3, 2. ,0.15]] )    
+        >>> data = [ [0.5, 1. , 0.1],  [0.3, 2. ,0.15] ]    
         
         Batch the data
         
-        >>> stack.set_value('a', 0.05)      # set constant error for a
+        >>> stack.set_value('a', error=0.05)    # set constant error for a
         >>> stack.batch(data, 'a|x|x%')
-        array([[ 0.5 ,  0.15],           
-               [ 2.4 ,  0.54]])             # line-by-line result with uncertainty
+        array([[ 0.5       ,  0.15811388],
+               [ 2.4       ,  0.6720119 ]])     # line-by-line result with uncertainty         
                
-        Try again with constant value
+        Try again with a constant value
         
         >>> stack.set_value('a',1., 0.05)          # define constant a value
         >>> stack.batch(data, '*|x|x%', 'ufloat')  # rerun computation ignoring first data column
@@ -480,6 +563,20 @@ class Sheet(object):
             return np.array(result)
         
         return result
+    
+    def _msg(self, message, mode = 'default'):
+        # avoid multiple messages
+    	try:
+            self.messages.index(message)
+            return
+    	except:
+            self.messages.append(message)
+    	
+    	if (mode == 'warning'):
+            logging.warning(message)
+        else:
+            logging.info(message)
+            
     
     def _find_in_list(self,l, elem):
         for row, i in enumerate(l):

@@ -1,3 +1,6 @@
+# Maabara is developed by Frithjof Gressmann
+# www.nocio.de
+
 from maabara.uncertainty import *
 from maabara.data import *
 from maabara.latex import *

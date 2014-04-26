@@ -5,15 +5,26 @@ import uncertainties as uc
 from scipy.optimize import curve_fit
 
 def literature_value(lit, value, dev = 0, mode="default"):
-    """Comparision with literature value
-    Arguments:
-            lit -- (float) literature value
-            value -- (float) nominal value
-            dev -- (float) optional deviation
-            mode -- (string) default, ufloat, tex, tex!, print, print:Latex name
+    """
+    
+    Comparision with literature value
+    
+    Parameters
+    ----------
+    lit : float
+        Literature value
+    value : float
+        Nominal value
+    dev : float, optional
+        Deviation
+    mode : {'default', 'ufloat', 'tex', 'tex!', 'print', or 'print:Latex name'}
+        Set return mode
 
-    Returns:
-            (float) relative deviation
+    Returns
+    -------
+    out : mixed
+        Relative deviation
+        
     """
 
     value = (value/float(lit) - 1)
@@ -50,109 +61,196 @@ def literature_value(lit, value, dev = 0, mode="default"):
     return  value, deviation
 
 def weighted_average(data, mode = "default"):
-        """Weighted avarage
+    """
 
-        Arguments:
-            data -- numpy array with 2 columns (first value, second deviation)
-            mode -- (string) default, ufloat, print, print:Latex name
+    Weighted average (see definition below)
 
-        Returns:
-            (float) value, (float) deviation
-        """
-        value = np.average(data[:,0], weights=(1/((data[:,1])**2)))
-        deviation = np.sqrt(1/np.sum(1/((data[:,1])**2)))
+    Parameters
+    ----------
+    data : Nx2 numpy array 
+        Two column array, first value, second deviation
+    mode : {'default', 'ufloat', 'print', 'print:Latex name'}
+        Set return mode
+
+    Returns
+    -------
+    out : mixed
+        ufloat or value and deviation
+    
+    Examples
+    --------
+    >>> data = [[ 1. ,  6. ],
+    ...         [ 8. ,  1.2]]
+    >>> ma.data.weighted_average(data)
+    (7.7307692307692308, 1.1766968108291043)
+    
+    Notes
+    -----
+    Definition:
+    
+    .. math::
+    
+        \\bar{x} &= \\frac{ \\sum_{i=1}^n \\left( x_i \\sigma_i^{-2} \\right)}{\\sum_{i=1}^n \\sigma_i^{-2}}
         
-        if(mode == "ufloat"):
-        	return uc.ufloat(value, deviation)
-        elif (mode.find("print",0,5) != -1):
-        	u = uc.ufloat(value, deviation)
-        	tex = ""
-        	if (str.find(mode,"print:") == 0):
-        		tex = mode[6:]
-        	print_ufloat(u, tex)
-        	return u
-        else:
-        	return  value, deviation
+        \\sigma_{\\bar{x}}^2 &= \\frac{ 1 }{\\sum_{i=1}^n \\sigma_i^{-2}}
+
+    """
+    data = np.array(data)
+    
+    value = np.average(data[:,0], weights=(1/((data[:,1])**2)))
+    deviation = np.sqrt(1/np.sum(1/((data[:,1])**2)))
+
+    if(mode == "ufloat"):
+            return uc.ufloat(value, deviation)
+    elif (mode.find("print",0,5) != -1):
+            u = uc.ufloat(value, deviation)
+            tex = ""
+            if (str.find(mode,"print:") == 0):
+                    tex = mode[6:]
+            print_ufloat(u, tex)
+            return u
+    else:
+            return  value, deviation
 
 def statistic_values(x):
-	"""Returns mean with deviation of statistical data set
+    """
+        
+    Returns mean including deviation out of statistical data set (see definiton below)
 
-        Arguments:
-            x -- numpy array with statistical values
+    Parameters
+    ----------
+    x : numpy array 
+        Statistical values (differnt shapes possible, see ``Returns``)
 
-        Returns:
-            if x is linear array:
-            	(float) mean, (float) deviation, (float) deviation for a single value in set
-            if x is 2-dimensional:
-            	numpy array with two columns for mean and deviation and row count like in given set
-      """
-	dimensions = x.shape
-      
- 	if len(dimensions) == 1:
-		mean = np.mean(x)
-		n = float(len(x))
-		value_deviation = np.sqrt(1/(n-1)*np.sum((x-mean)**2))
-		set_deviation = value_deviation/(np.sqrt(n))
-	
-		return mean, set_deviation, value_deviation
-	elif len(dimensions) == 2:
-		result = np.empty((dimensions[0],2))
-		for i in range(0,dimensions[0]):
-			r = statistic_values(x[i,:])
-			result[i,0] = r[0]
-			result[i,1] = r[1]
-		return result
-	else:
-		return False
+    Returns
+    -------
+    out : mixed
+        if x is a linear array:
+            (float) mean, (float) deviation, (float) deviation for a single value in set
+        if x is two-dimensional:
+            numpy array with two columns for mean and deviation corrosponding to input data
+    
+    Notes
+    -----
+    Definition:
+    
+    .. math::
+        
+        \\bar{x} &= \\frac{1}{N} \\sum_{i=1}^{N} x_i
+        
+        \\sigma_{\\bar{x}} &= \\sqrt {\\frac1{N(N-1)} \\sum_{i=1}^N (x_i-\\overline{x})^2}
+    
+    """
+    x = np.array(x)
+    
+    dimensions = x.shape
+
+    if len(dimensions) == 1:
+            mean = np.mean(x)
+            n = float(len(x))
+            value_deviation = np.sqrt(1/(n-1)*np.sum((x-mean)**2))
+            set_deviation = value_deviation/(np.sqrt(n))
+
+            return mean, set_deviation, value_deviation
+    elif len(dimensions) == 2:
+            result = np.empty((dimensions[0],2))
+            for i in range(0,dimensions[0]):
+                    r = statistic_values(x[i,:])
+                    result[i,0] = r[0]
+                    result[i,1] = r[1]
+            return result
+    else:
+            return False
 
 def student_t(x):
-	"""Returns mean with deviation of statistical data set based on student t
+    """
+    
+    Returns mean with deviation of statistical data set 
+    multiplied by student t-factor
 
-        Arguments:
-            x -- numpy array with statistical values
+    See :func:`~maabara.data.statistic_values`
+    
+    """
+    x = np.array(x)
+    
+    stat_values = statistic_values(x)
+    n = len(x)
+    if (n <= 3):
+            tp = 1.32
+    elif (n <= 5):
+            tp = 1.15
+    elif (n <= 10):
+            tp = 1.06
+    else:
+            tp = 1.0
 
-        Returns:
-            if x is linear array:
-            	(float) mean, (float) deviation
-            if x is 2-dimensional:
-            	numpy array with two columns for mean and deviation and row count like in given set
-      """
-	stat_values = statistic_values(x)
-	n = len(x)
-	if (n <= 3):
-		tp = 1.32
-	elif (n <= 5):
-		tp = 1.15
-	elif (n <= 10):
-		tp = 1.06
-	else:
-		tp = 1.0
-		
-	if len(x.shape) == 1:
-		return stat_values[0], stat_values[1]*tp
-	elif len(x.shape) == 2:
-		stat_values[:,1] *= tp
-		return stat_values
-	else:
-		return False
+    if len(x.shape) == 1:
+        return stat_values[0], stat_values[1]*tp
+    elif len(x.shape) == 2:
+        stat_values[:,1] *= tp
+        return stat_values
+    else:
+        return False
 
 
 def linear_fit(xdata, ydata, ysigma=None, name="r"):
     """
     Performs a linear fit to data.
 
-    Arguments
-        xdata -- array like
-        ydata -- array like
-        ysigma -- None or array like
-            If provided, it is the standard-deviation of ydata.
-            This vector, if given, will be used as weights in the fit.
-        name -- (optional) Latex name
+    Parameters
+    ----------
+    xdata : array like
+    ydata : array like
+    ysigma : None or array like
+        If provided it will be used as standard-deviation of ydata and 
+        weights in the fit.
+    name : string, optional
+        Latex name
 
     Returns
-        m  -- ufloat 
-        b --  ufloat
-        tex -- Latex code of linear polynom
+    -------
+    out : m, b, tex
+        m -- gradient ufloat 
+        b -- ordinate ufloat
+        tex -- Latex markup of linear polynom
+        
+    Notes
+    -----
+    Based on http://bulldog2.redlands.edu/facultyfolder/deweerd/tutorials/
+    
+    Copyright http://redlands.edu
+        
+    Examples
+    --------
+    Basic matplotlib figure
+    
+    >>> a4width = 448.13095 / 72.27
+    ... A4 = (a4width, a4width/1.41421356237)
+    ... pl = figure(figsize=A4)
+    
+    Set labels
+    
+    >>> ticklabel_format(style='sci', axis='both', scilimits=(-3,3))
+    ... xlabel('x [1]')
+    ... ylabel('y [1]')
+
+    Perform linear fit
+    
+    >>> x = [0.0, 2.0, 4.0, 6.0, 8.0]
+    ... y = [1.1, 1.9, 3.2, 4.0, 5.9]
+    ... y_err = [0.1, 0.2, 0.1, 0.3, 0.3]
+    ... m, b, tex = ma.data.linear_fit(x,y,y_err)
+    
+    Plot results
+    
+    >>> errorbar(x, y, y_err, label='')
+    ... x = linspace(min(x),max(x))
+    ... plot(x, m.n*x+b.n, "r-", label ="$" + tex + "$")
+
+    Save plot to pdf
+    
+    >>> pl.savefig("pl.pdf", transparent=True, format="pdf", bbox_inches='tight')
+    
     """
     
     xdata = np.array(xdata)
@@ -201,7 +299,9 @@ def linear_fit(xdata, ydata, ysigma=None, name="r"):
 
 def general_fit(f, xdata, ydata, p0=None, sigma=None, **kw):
     """
+    
     Use non-linear least squares to fit a function, f, to data.
+    
 
     Assumes ``ydata = f(xdata, *params) + eps``
 
@@ -228,12 +328,17 @@ def general_fit(f, xdata, ydata, p0=None, sigma=None, **kw):
 
     Returns
     -------
-    array of two columns: parameter and deviation
+    out : Nx2 array 
+        Parameter value and its deviation
 
     Notes
     -----
     The algorithm uses the Levenburg-Marquardt algorithm through `leastsq`.
     Additional keyword arguments are passed directly to that algorithm.
+
+    Based on http://bulldog2.redlands.edu/facultyfolder/deweerd/tutorials/
+    
+    Copyright http://redlands.edu
 
     Examples
     --------

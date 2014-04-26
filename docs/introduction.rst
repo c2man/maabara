@@ -5,8 +5,15 @@ In scientific computations it is a quite common pastime to `propagate uncertaint
 
 The Python Package `uncertainties`_ does this sport really catchy. But its propagation yields a numeric result only. It's great if you only need the final value, but what if you have to document the underlying computation?
 
+.. math::
+
+    \sigma_y=\sqrt{ \sum_{i=1}^m \left(\frac{\partial y}{\partial x_i}\cdot u_i\right)^2}
+
 Maabara extends *uncertainties* package and allows you to calculate and document error propagation in one step. Type your equation once, get the result and its uncertainty including calculation specification - ready in Latex markup.
 Moreover the data module provides functions for estimation of uncertainty, fitting with error bars, comparison with literature values and more.
+
+.. note::
+    At its current state of development Maabara does not support correlations.
 
 A short example
 ^^^^^^^^^^^^^^^
@@ -35,6 +42,7 @@ In default setting you'll get result, equation and propagation of uncertainty li
 
 Of course everything will be copyable Latex markup. Well, it is not too impressing. But add some trigonometric functions, calculate a hundreds of values or generate Latex tables from result and it will get more exciting. 
 Continue reading the `User Guide`_ for such pleasures.
+
 
 .. _propagate uncertainty: http://en.wikipedia.org/wiki/Propagation_of_uncertainty
 .. _uncertainties: http://pythonhosted.org/uncertainties/

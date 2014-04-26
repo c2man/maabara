@@ -5,6 +5,8 @@ Release Notes
 
 * siunitx support
 * advanced printing options
+* german comma support
+* custom configurations
 
 **1.0.0 (20-04-2014)**
 
@@ -30,3 +32,7 @@ Release Notes
 **0.1 (02-2014)**
 
 * Initial release (alpha)
+
+Maabara follows `semantic versioning`_.
+
+.. _semantic versioning: http://www.semver.org/

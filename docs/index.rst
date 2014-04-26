@@ -5,6 +5,12 @@ Error Propagation made easy - maabara
 
 Maabara allows you to compute and document error propagation fast and pythonic through `Latex`_.
 
+-  `Pypi Website`_
+-  `Github Project`_
+-  `Blog`_
+
+Maabara follows `semantic versioning`_. It is a swahili word meaning »laboratory«.
+
 Documentation
 ^^^^^^^^^^^^^
 .. toctree::
@@ -18,15 +24,6 @@ Documentation
    release_notes
    
 * :ref:`genindex`
-   
-References
-^^^^^^^^^^
--  `Pypi Website`_
--  `Github Project`_
--  `Blog`_
-
-
-Maabara follows `semantic versioning`_. It is a swahili word meaning »laboratory«.
 
 .. _Latex: http://www.latex-project.org/
 .. _semantic versioning: http://www.semver.org/

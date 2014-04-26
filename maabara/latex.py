@@ -8,13 +8,25 @@ def is_float(string):
         return False
 
 class Table(object):
-    """Creating Latex Tables
+    """
+    
+    Generating Latex Tables
+    
     """
     
     def __init__(self):
         self.reset()
         
     def reset(self):
+        """
+        
+        Clear all settings
+        
+        Returns
+        -------
+        out : boolean
+            True on success.
+        """
         self.data = []
         self.header = []
         
@@ -27,26 +39,80 @@ class Table(object):
         self.circline = True
         self.embedding = True
         self.placement = '[!htb]'
+        
+        return True
     
     def set_placement(self, placement = '[!htb]'):
+        """
+        
+        Set a placement
+        
+        Parameters
+        ----------
+        placement : string, default ``[!htb]``
+            Latex placement to align table.
+            
+        Returns
+        -------
+        out : boolean
+            True on success.
+        """
     	self.placement = placement
+        
+        return True
     
     def no_environment(self):
+        """
+        
+        Disables Table environment. Export will result in table body only.
+        
+        """
         self.set('embedding', False)
     
     def no_headline(self):
+        """
+        
+        Disables head row. Export won't add headers to table columns.
+        
+        """
         self.set('headline', False)
     
     def set_label(self, label):
+        """
+        
+        Set a Latex label
+        
+        """
         self.set('label',label)
         
     def set_caption(self, caption):
+        """
+        
+        Set a Latex caption
+        
+        """
         self.set('caption',caption)
             
     def set(self, option, value):
         setattr(self, option, value)
         
     def dimensions(self, array_return = False):
+        """
+        
+        Returns a the dimensions of the current table data
+        
+        Parameters
+        ----------
+        array_return : boolean, optional
+            If True method will return and empty row and column array
+            
+        Returns
+        -------
+        out : mixed
+            By default method will return row and col count, if array_return
+            two empty arrays with the corresponding dimensions are returned.
+        
+        """
         rows = len(self.data)
         try:
             cols = len(self.data[0])
@@ -91,28 +157,53 @@ class Table(object):
         
         return str(args[0]), args[1:]
     
-    def add_column(self, data, function = False, title = ''):
-        """Add a column to table
-
-        Arguments:
-        data -- array like data set
-        function -- instructions how to render data into cell
+    def c(self, data, function = False, title = ''):
+        """
         
-            Examples:
-            num($0) -- format data from first column in data as number 
-            num($0,0.1) -- format number with constant uncertainty 0.1
-            num($0,$1) -- dynamic uncertainty from second column of data
-            num($0,$1,{:L}) -- optional format for ufloat printing
-            $0,$1 -- num will be default if not function given
+        Alias of :func:`~maabara.latex.Table.add_column`
+        
+        """
+        self.add_column(data, function, title);
+    
+    def add_column(self, data, function = False, title = ''):
+        """
+        
+        Add a column to table
+
+        Parameters
+        ----------
+        data : array_like
+            Data set
+        function : mixed
+            If False ``data`` will be added unchanged.
+        
+            If String it sets instructions how to render ``data`` into each cell, 
+            e.g. ``example($0,1)``. ``$x`` will link to x. column of dataset.
             
-            lit(3.141, $0) -- compare with literature value of pi
-            lit(3.141, $0,$1) -- compare with deviation
+            Available functions:
             
-            rnd($0,3) -- round numbers in 3 digits
+            ``num(value, deviation, format)`` : Number formating
+                ``num($0)`` -- Format first column in data as number
+                ``num($0,0.1)`` -- Format numbers with constant uncertainty 0.1
+                ``num($0,$1)`` -- Dynamic uncertainty from second column of data
+                ``num($0,$1,{:L})`` -- Optional format for ufloat printing
+                
+            ``uc(ufloat, format)`` : Number formating alias
+                Like ``num`` function but with ufloat argument
+
+            ``lit(reference, value, deviation)`` : Compare to literature value, see :func:`~maabara.data.literature_value`
+                ``lit(3.141, $0)`` -- Compare with literature value of pi
+                ``lit(3.141, $0,$1)`` -- Compare including deviation
             
-            uc($0) -- num function but with ufloat argument
+            ``rnd(value, digits)`` : rounding
+                ``rnd($0,3)`` -- round numbers in 3 digits
             
-        title -- column caption
+            
+            Note that ``num`` will be default if no function name was specified: ``$0,$1`` will be interpreted as ``num($0,$1)``
+            
+        title : string, optional
+            Sets a column caption
+        
         """
         def dynamic_value(arg, row):
             if (str(arg)[0] == "$"):
@@ -132,7 +223,7 @@ class Table(object):
                         
                 return arg
 
-        def num(nominal, deviation = 'False', layout = '{:L}'):
+        def num(nominal, deviation = 'False', layout = '{:.1uL}'):
             result = '\\num{' + str(nominal) + '}'
             if (is_float(deviation)):
                 import uncertainties as uc
@@ -148,8 +239,8 @@ class Table(object):
         def rnd(value, digits):
             return num(round(value, digits))
         
-        def uc(value):
-            return num(value.n, value.s)
+        def uc(value, layout = '{:.1uL}'):
+            return num(value.n, value.s, layout)
 
         # transpose to column
         try:
@@ -189,17 +280,52 @@ class Table(object):
         self.header.append(title)
 
     def set_data(self, data):
-        """Set data
+        """
+        
+        Set data
 
-        Arguments:
-        data -- array
+        Parameters
+        ----------
+        data : array_like
+        
+        Returns
+        -------
+        out : boolean
+            True on success
+        
         """
         if (len(data) > 0):
             self.data = data
             return True
 
+    def get_data(self):
+        """
+        
+        Get data
+        
+        Returns
+        -------
+        out : array
+            Data
+        
+        """
+        return self.data
+
     def latex(self, data = []):
-        """Returns latex result
+        """
+        
+        Get Latex table markup
+        
+        Parameters
+        ----------
+        data : array_like, optional
+            See :func:`~maabara.latex.set_data`
+        
+        Returns
+        -------
+        out : string
+            Latex table markup
+        
         """
         
         self.set_data(data)
@@ -228,6 +354,16 @@ class Table(object):
         return result
     
     def environment(self): 
+        """
+        
+        Get Latex table environment markup
+        
+        Returns
+        -------
+        out : string header, string footer
+            Latex table environment header and footer
+        
+        """
         if self.circline == True:
             circ = '\n \\hline\n'
         else:
@@ -271,36 +407,32 @@ class Table(object):
 
         return head, foot
 
-    def get_data(self):
-        return self.data
-
     
-    def export(self, file = False, mode = 'default'):
+    def export(self, file):
         """
-        Saves latex table to file
         
-        Arguments:
+        Saves Latex table markup to file
         
-        file -- filename
-        mode -- mode (default)
+        Parameters
+        ----------
+        file : string
+            Filename
         
-        Returns:
-        Latex code or prints include command 
+        Returns
+        -------
+        out : mixed
+            Latex ``\input`` command or ``False`` on failure
         
         """
-        if (mode == 'default'):
-            result = self.latex()
-        else:
-            raise ValueError('Invalid mode:' + mode)
+
+        result = self.latex()
         
-        if (file != False):
+        try:
             text_file = open(file, "w")
             text_file.write(result)
             text_file.close()
+        except:
+            return False
             
-            if (mode == 'default'):
-                return '\\input{' + file + '}'
-            
-            return True
-        
-        return result
+
+        return '\\input{' + file + '}'
